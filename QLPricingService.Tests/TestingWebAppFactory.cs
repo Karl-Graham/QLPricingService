@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using QLPricingService.Data; // Namespace for PricingDbContext
 using QLPricingService.Domain; // Namespace for domain entities
 using System.Data.Common; // For DbConnection
+using Microsoft.Extensions.Logging; // Add this using statement
 
 namespace QLPricingService.Tests;
 
@@ -45,6 +46,7 @@ public class TestingWebAppFactory<TEntryPoint> : WebApplicationFactory<TEntryPoi
                 var db = scopedServices.GetRequiredService<PricingDbContext>();
                 var logger = scopedServices.GetRequiredService<ILogger<TestingWebAppFactory<TEntryPoint>>>();
 
+                db.Database.EnsureDeleted();
                 db.Database.EnsureCreated();
 
                 try
@@ -65,10 +67,11 @@ public class TestingWebAppFactory<TEntryPoint> : WebApplicationFactory<TEntryPoi
 
     private void SeedDatabase(PricingDbContext context)
     {
-        // Seed data consistent with DbContext HasData, but ensures it runs for tests
-        // In a real app, consider if DbContext seed is sufficient or if tests need different/more data
-        
-        // Note: Services are already seeded via HasData in DbContext, EnsureCreated handles this.
+        // Ensure clean state specifically for Customers before seeding test-specific ones
+        // This might be needed if DbContext.Database.EnsureCreated() doesn't clear perfectly
+        // or if there's interaction with DbContext's HasData seeding.
+        context.Customers.RemoveRange(context.Customers);
+        context.SaveChanges(); // Commit the removal before adding new ones
 
         // Customers (Match IDs used in DbContext HasData)
         context.Customers.AddRange(

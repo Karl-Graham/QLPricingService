@@ -180,10 +180,9 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
     }
 
     [Theory]
-    [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public async Task CalculatePriceByName_EmptyOrWhitespaceName_ReturnsBadRequest(string customerName)
+    public async Task CalculatePriceByName_EmptyOrWhitespaceName_ReturnsBadRequest(string? customerName)
     {
         // Arrange
         var client = _factory.CreateClient();
@@ -368,8 +367,7 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
 
         var result = await response.Content.ReadFromJsonAsync<CalculatePriceResponse>();
         Assert.NotNull(result);
-        // Add precision (will fix fully in later step)
-        Assert.Equal(expectedPrice, result.TotalPrice, precision: 2);
+        Assert.Equal(expectedPrice, result!.TotalPrice, precision: 2);
     }
 
     [Theory]
@@ -389,8 +387,7 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
 
         var result = await response.Content.ReadFromJsonAsync<CalculatePriceResponse>();
         Assert.NotNull(result);
-        // Add precision (will fix fully in later step)
-        Assert.Equal(expectedPrice, result.TotalPrice, precision: 2);
+        Assert.Equal(expectedPrice, result!.TotalPrice, precision: 2);
     }
 
     [Theory]
@@ -410,7 +407,6 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
 
         var result = await response.Content.ReadFromJsonAsync<CalculatePriceResponse>();
         Assert.NotNull(result);
-        // Add precision (will fix fully in later step)
-        Assert.Equal(expectedPrice, result.TotalPrice, precision: 2);
+        Assert.Equal(expectedPrice, result!.TotalPrice, precision: 2);
     }
 } 

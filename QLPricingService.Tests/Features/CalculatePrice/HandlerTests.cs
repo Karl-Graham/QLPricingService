@@ -57,11 +57,12 @@ public class HandlerTests : IDisposable
         var query = new CalculatePriceQuery(1, new DateTime(2023, 1, 10), new DateTime(2023, 1, 1)); // End before start
 
         // Act
-        var (_, errorMessage, statusCode) = await _handler.HandleAsync(query);
+        var result = await _handler.HandleAsync(query);
 
         // Assert
-        Assert.Equal(HttpStatusCode.BadRequest, statusCode);
-        Assert.Contains("earlier than start date", errorMessage);
+        Assert.Null(result.Response);
+        Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
+        Assert.Equal("EndDate must be on or after StartDate.", result.ErrorMessage);
     }
 
     [Fact]

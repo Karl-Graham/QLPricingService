@@ -25,6 +25,7 @@ public class Handler
         _logger.LogInformation("Handling CalculatePrice query for Customer {CustomerId} from {StartDate} to {EndDate}", 
             query.CustomerId, query.StartDate, query.EndDate);
 
+        // Reinstate manual validation call as automatic validation is not triggering reliably for GET
         var validationResult = ValidateQuery(query);
         if (validationResult is not null) return validationResult.Value;
 
@@ -62,6 +63,7 @@ public class Handler
         }
     }
 
+    // Reinstate the validation method
     private (CalculatePriceResponse? Response, string? ErrorMessage, HttpStatusCode StatusCode)? ValidateQuery(CalculatePriceQuery query)
     {
         // Basic date range validation
@@ -69,7 +71,8 @@ public class Handler
         {
             _logger.LogWarning("Invalid date range provided: StartDate {StartDate} is after EndDate {EndDate}",
                 query.StartDate, query.EndDate);
-            return (null, "End date cannot be earlier than start date.", HttpStatusCode.BadRequest);
+            // Use the message from the validator for consistency
+            return (null, "EndDate must be on or after StartDate.", HttpStatusCode.BadRequest); 
         }
         return null; // No error
     }

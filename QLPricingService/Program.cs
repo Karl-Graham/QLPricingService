@@ -55,20 +55,18 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 // Define Pricing Endpoint
-
 app.MapGet("/pricing", async (
-    [FromQuery] int customerId,
+    [FromQuery] int customerId, 
     [FromQuery] DateTime startDate,
     [FromQuery] DateTime endDate,
-    QLPricingService.Features.CalculatePrice.Handler handler, // Inject the handler
+    QLPricingService.Features.CalculatePrice.Handler handler,
     CancellationToken cancellationToken)
     =>
 {
     var query = new CalculatePriceQuery(customerId, startDate, endDate);
-    // Get the result tuple from the handler
+    
     var (response, errorMessage, statusCode) = await handler.HandleAsync(query, cancellationToken);
 
-    // Map the result to appropriate IResult based on status code
     return statusCode switch
     {
         HttpStatusCode.OK => Results.Ok(response),

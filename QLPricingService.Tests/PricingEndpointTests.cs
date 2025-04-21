@@ -107,7 +107,7 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
         // Check the response body message (expecting { Message: "..." })
         var error = await response.Content.ReadFromJsonAsync<ErrorResponse>(); // Use a simple record
         Assert.NotNull(error);
-        Assert.Contains("earlier than start date", error.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal("EndDate must be on or after StartDate.", error.Message); // Use exact message from Handler
     }
 
     [Fact]

@@ -409,4 +409,66 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
         Assert.NotNull(result);
         Assert.Equal(expectedPrice, result!.TotalPrice, precision: 2);
     }
+
+    // --- Edge Case Tests ---
+
+    [Theory]
+    // Scenario 1: Discount starts exactly on query start date
+    // Customer 8, Service C (0.4/day, charges weekends), Discount 50% from Jan 15 to 21.
+    // Query: Jan 15 - Jan 21 (7 days)
+    // Price = 7 days * 0.4 * (1 - 0.5) = 7 * 0.4 * 0.5 = 1.4
+    [InlineData(8, "2024-01-15", "2024-01-21", 1.40)]
+    // Scenario 2: Discount ends exactly on query end date
+    // Customer 9, Service C (0.4/day, charges weekends), Discount 50% from Jan 15 to 21.
+    // Query: Jan 15 - Jan 21 (7 days)
+    // Price = 7 days * 0.4 * (1 - 0.5) = 7 * 0.4 * 0.5 = 1.4
+    [InlineData(9, "2024-01-15", "2024-01-21", 1.40)]
+    // Scenario 3: Overlapping discounts (higher percentage should apply)
+    // Customer 10, Service C (0.4/day, charges weekends)
+    // Discount 1: 20% Jan 1-10
+    // Discount 2: 60% Jan 5-15
+    // Query: Jan 1 - Jan 15 (15 days)
+    // Jan 1-4 (4 days): 20% discount = 4 * 0.4 * 0.8 = 1.28
+    // Jan 5-10 (6 days): 60% discount (higher) = 6 * 0.4 * 0.4 = 0.96
+    // Jan 11-15 (5 days): 60% discount = 5 * 0.4 * 0.4 = 0.80
+    // Total = 1.28 + 0.96 + 0.80 = 3.04
+    [InlineData(10, "2024-01-01", "2024-01-15", 3.04)]
+    // Scenario 4: Customer specific price with discount
+    // Customer 11, Service C (Charges weekends), Specific Price = 0.50/day
+    // Discount: 10% Jan 1-31
+    // Query: Jan 1 - Jan 10 (10 days)
+    // Price = 10 days * 0.50 * (1 - 0.10) = 10 * 0.50 * 0.9 = 4.50
+    [InlineData(11, "2024-01-01", "2024-01-10", 4.50)]
+    // Scenario 5: Free days exactly match chargeable days
+    // Customer 12, Service A (0.2/day, NO weekend charge), 5 free days
+    // Query: Jan 1 (Mon) - Jan 7 (Sun) (7 days)
+    // Chargeable days: Jan 1-5 (Mon-Fri) = 5 days
+    // Costs: 0.2 * 5 = 1.0. Free days = 5. Cheapest 5 days (all 0.2) are skipped.
+    // Price = 0.00
+    [InlineData(12, "2024-01-01", "2024-01-07", 0.00)] 
+    // Scenario 6: Free days exceed chargeable days
+    // Customer 12, Service A (0.2/day, NO weekend charge), 5 free days
+    // Query: Jan 1 (Mon) - Jan 5 (Fri) (5 days)
+    // Chargeable days: Jan 1-5 (Mon-Fri) = 5 days
+    // Costs: 0.2 * 5 = 1.0. Free days = 5. Cheapest 5 days (all 0.2) are skipped.
+    // Price = 0.00
+    [InlineData(12, "2024-01-01", "2024-01-05", 0.00)]
+    public async Task CalculatePrice_EdgeCases_ReturnsCorrectPrice(int customerId, string startDate, string endDate, decimal expectedPrice)
+    {
+        // Arrange
+        var client = _factory.CreateClient();
+        var url = $"/pricing?customerId={customerId}&startDate={startDate}&endDate={endDate}";
+
+        // Act
+        var response = await client.GetAsync(url);
+
+        // Assert
+        response.EnsureSuccessStatusCode(); // Status Code 200-299
+        Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType.ToString());
+
+        var result = await response.Content.ReadFromJsonAsync<CalculatePriceResponse>();
+        Assert.NotNull(result);
+        // Use precision 3 for safety with intermediate calculations
+        Assert.Equal(expectedPrice, result!.TotalPrice, precision: 3); 
+    }
 } 

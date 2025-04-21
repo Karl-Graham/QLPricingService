@@ -149,7 +149,13 @@ public class TestingWebAppFactory<TEntryPoint> : WebApplicationFactory<TEntryPoi
                     new Customer { Id = 4, Name = "Weekend Test User C", GlobalFreeDays = 0 },
                     new Customer { Id = 5, Name = "Discount Mid Start User", GlobalFreeDays = 0 },
                     new Customer { Id = 6, Name = "Discount Mid End User", GlobalFreeDays = 0 },
-                    new Customer { Id = 7, Name = "Discount Full Period User", GlobalFreeDays = 0 }
+                    new Customer { Id = 7, Name = "Discount Full Period User", GlobalFreeDays = 0 },
+                    // New Customers for Edge Case Tests (8-12)
+                    new Customer { Id = 8, Name = "Edge: Discount Start Match", GlobalFreeDays = 0 },
+                    new Customer { Id = 9, Name = "Edge: Discount End Match", GlobalFreeDays = 0 },
+                    new Customer { Id = 10, Name = "Edge: Overlapping Discounts", GlobalFreeDays = 0 },
+                    new Customer { Id = 11, Name = "Edge: Specific Price + Discount", GlobalFreeDays = 0 },
+                    new Customer { Id = 12, Name = "Edge: Free Days Match/Exceed", GlobalFreeDays = 5 }
                 );
 
                 // Services (A, B, C)
@@ -169,7 +175,13 @@ public class TestingWebAppFactory<TEntryPoint> : WebApplicationFactory<TEntryPoi
                     new CustomerServiceUsage { CustomerId = 4, ServiceId = 3, StartDate = new DateTime(2023, 1, 1) },  
                     new CustomerServiceUsage { CustomerId = 5, ServiceId = 3, StartDate = new DateTime(2023, 1, 1) }, 
                     new CustomerServiceUsage { CustomerId = 6, ServiceId = 3, StartDate = new DateTime(2023, 1, 1) }, 
-                    new CustomerServiceUsage { CustomerId = 7, ServiceId = 3, StartDate = new DateTime(2023, 1, 1) }  
+                    new CustomerServiceUsage { CustomerId = 7, ServiceId = 3, StartDate = new DateTime(2023, 1, 1) },
+                    // New Usages for Edge Cases (Customers 8-12)
+                    new CustomerServiceUsage { CustomerId = 8, ServiceId = 3, StartDate = new DateTime(2024, 1, 1) }, // Service C (Charges weekends)
+                    new CustomerServiceUsage { CustomerId = 9, ServiceId = 3, StartDate = new DateTime(2024, 1, 1) }, // Service C
+                    new CustomerServiceUsage { CustomerId = 10, ServiceId = 3, StartDate = new DateTime(2024, 1, 1) },// Service C
+                    new CustomerServiceUsage { CustomerId = 11, ServiceId = 3, StartDate = new DateTime(2024, 1, 1), CustomerSpecificPricePerDay = 0.50m }, // Service C, specific price
+                    new CustomerServiceUsage { CustomerId = 12, ServiceId = 1, StartDate = new DateTime(2024, 1, 1) }  // Service A (No weekend charge)
                 );
 
                 // Discounts (for 1, 2, 5, 6, 7)
@@ -179,7 +191,13 @@ public class TestingWebAppFactory<TEntryPoint> : WebApplicationFactory<TEntryPoi
                     new Discount { CustomerId = 2, ServiceId = 3, Percentage = 0.30m, StartDate = new DateTime(2018, 1, 1), EndDate = new DateTime(2099, 12, 31) },
                     new Discount { CustomerId = 5, ServiceId = 3, Percentage = 0.50m, StartDate = new DateTime(2023, 11, 6), EndDate = new DateTime(2023, 11, 10) },
                     new Discount { CustomerId = 6, ServiceId = 3, Percentage = 0.25m, StartDate = new DateTime(2023, 11, 1), EndDate = new DateTime(2023, 11, 5) },
-                    new Discount { CustomerId = 7, ServiceId = 3, Percentage = 0.10m, StartDate = new DateTime(2023, 11, 1), EndDate = new DateTime(2023, 11, 10) }
+                    new Discount { CustomerId = 7, ServiceId = 3, Percentage = 0.10m, StartDate = new DateTime(2023, 11, 1), EndDate = new DateTime(2023, 11, 10) },
+                    // New Discounts for Edge Cases (Customers 8-12)
+                    new Discount { CustomerId = 8, ServiceId = 3, Percentage = 0.50m, StartDate = new DateTime(2024, 1, 15), EndDate = new DateTime(2024, 1, 21) }, // Starts Mon 15th
+                    new Discount { CustomerId = 9, ServiceId = 3, Percentage = 0.50m, StartDate = new DateTime(2024, 1, 15), EndDate = new DateTime(2024, 1, 21) }, // Ends Sun 21st
+                    new Discount { CustomerId = 10, ServiceId = 3, Percentage = 0.20m, StartDate = new DateTime(2024, 1, 1), EndDate = new DateTime(2024, 1, 10) }, // Lower % 
+                    new Discount { CustomerId = 10, ServiceId = 3, Percentage = 0.60m, StartDate = new DateTime(2024, 1, 5), EndDate = new DateTime(2024, 1, 15) }, // Higher %, overlaps
+                    new Discount { CustomerId = 11, ServiceId = 3, Percentage = 0.10m, StartDate = new DateTime(2024, 1, 1), EndDate = new DateTime(2024, 1, 31) } // Discount on specific price
                 );
 
                 // Save all test data

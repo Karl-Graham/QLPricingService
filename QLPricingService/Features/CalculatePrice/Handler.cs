@@ -50,8 +50,8 @@ public class Handler
 
         try
         {
-            var dailyCosts = CalculateAllDailyCosts(query.StartDate, query.EndDate, customer);
-            var totalPrice = ApplyFreeDays(dailyCosts, customer.GlobalFreeDays);
+            // Use the dedicated calculator class
+            var totalPrice = PriceCalculator.CalculateTotalPrice(query.StartDate, query.EndDate, customer);
 
             _logger.LogInformation("Calculated total price for Customer {CustomerId} is {TotalPrice}", customer.Id, totalPrice);
             return (new CalculatePriceResponse(totalPrice), null, HttpStatusCode.OK);
@@ -82,73 +82,10 @@ public class Handler
         // Eager load related data needed for calculation
         return await _dbContext.Customers
             .Include(c => c.ServiceUsages)
-                .ThenInclude(u => u.Service)
+                .ThenInclude(u => u.Service) // Ensure Service is included for PriceCalculator
             .Include(c => c.Discounts)
-                .ThenInclude(d => d.Service)
+                .ThenInclude(d => d.Service) // Also include Service here if needed by discount logic later
             .AsSplitQuery() // Optimization for multiple collection Includes
             .FirstOrDefaultAsync(c => c.Id == customerId, cancellationToken);
-    }
-
-    private List<decimal> CalculateAllDailyCosts(DateTime startDate, DateTime endDate, Customer customer)
-    {
-        var dailyCosts = new List<decimal>();
-        for (var currentDate = startDate.Date; currentDate <= endDate.Date; currentDate = currentDate.AddDays(1))
-        {
-            decimal currentDayTotalCost = CalculateSingleDayCost(currentDate, customer);
-            // Only include days that actually incurred a cost
-            if (currentDayTotalCost > 0)
-            {
-                dailyCosts.Add(currentDayTotalCost);
-            }
-        }
-        return dailyCosts;
-    }
-
-    private decimal CalculateSingleDayCost(DateTime currentDate, Customer customer)
-    {
-        decimal currentDayTotalCost = 0m;
-        DayOfWeek currentDayOfWeek = currentDate.DayOfWeek;
-
-        var activeUsagesOnDate = customer.ServiceUsages
-            .Where(u => u.StartDate.Date <= currentDate)
-            .ToList(); 
-
-        foreach (var usage in activeUsagesOnDate)
-        {
-            if (usage.Service == null) continue; // Should not happen with Includes, but defensive check
-
-            bool isChargeableDay = usage.Service.ChargesOnWeekends ||
-                                   (currentDayOfWeek != DayOfWeek.Saturday && currentDayOfWeek != DayOfWeek.Sunday);
-
-            if (isChargeableDay)
-            {
-                decimal basePrice = usage.CustomerSpecificPricePerDay ?? usage.Service.BasePricePerDay;
-                decimal discountMultiplier = GetDiscountMultiplier(currentDate, usage.ServiceId, customer.Discounts);
-                decimal dailyServicePrice = basePrice * discountMultiplier;
-                currentDayTotalCost += dailyServicePrice;
-            }
-        }
-        return currentDayTotalCost;
-    }
-
-    private decimal GetDiscountMultiplier(DateTime currentDate, int serviceId, IEnumerable<Discount> discounts)
-    {
-        // Find the best applicable discount for the service on the given date
-        var applicableDiscount = discounts
-            .Where(d => d.ServiceId == serviceId &&
-                        d.StartDate.Date <= currentDate &&
-                        d.EndDate.Date >= currentDate)
-            .OrderByDescending(d => d.Percentage) // Apply highest discount if overlapping
-            .FirstOrDefault();
-
-        return applicableDiscount != null ? (1.0m - applicableDiscount.Percentage) : 1.0m;
-    }
-
-    private decimal ApplyFreeDays(List<decimal> dailyCosts, int freeDays)
-    {
-        // Sort daily costs low-to-high and skip the cheapest N days
-        dailyCosts.Sort();
-        int freeDaysToApply = Math.Min(freeDays, dailyCosts.Count);
-        return dailyCosts.Skip(freeDaysToApply).Sum();
     }
 } 

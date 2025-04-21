@@ -367,7 +367,9 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
 
         var result = await response.Content.ReadFromJsonAsync<CalculatePriceResponse>();
         Assert.NotNull(result);
-        Assert.Equal(expectedPrice, result!.TotalPrice, precision: 2);
+#pragma warning disable CS8602 // Suppressed: Assert.NotNull ensures 'result' is not null here.
+        Assert.Equal(expectedPrice, result.TotalPrice, precision: 2);
+#pragma warning restore CS8602
     }
 
     [Theory]
@@ -387,7 +389,9 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
 
         var result = await response.Content.ReadFromJsonAsync<CalculatePriceResponse>();
         Assert.NotNull(result);
-        Assert.Equal(expectedPrice, result!.TotalPrice, precision: 2);
+#pragma warning disable CS8602 // Suppressed: Assert.NotNull ensures 'result' is not null here.
+        Assert.Equal(expectedPrice, result.TotalPrice, precision: 2);
+#pragma warning restore CS8602
     }
 
     [Theory]
@@ -407,7 +411,9 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
 
         var result = await response.Content.ReadFromJsonAsync<CalculatePriceResponse>();
         Assert.NotNull(result);
-        Assert.Equal(expectedPrice, result!.TotalPrice, precision: 2);
+#pragma warning disable CS8602 // Suppressed: Assert.NotNull ensures 'result' is not null here.
+        Assert.Equal(expectedPrice, result.TotalPrice, precision: 2);
+#pragma warning restore CS8602
     }
 
     // --- Edge Case Tests ---
@@ -469,6 +475,8 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
         var result = await response.Content.ReadFromJsonAsync<CalculatePriceResponse>();
         Assert.NotNull(result);
         // Use precision 3 for safety with intermediate calculations
-        Assert.Equal(expectedPrice, result!.TotalPrice, precision: 3); 
+#pragma warning disable CS8602 // Suppressed: Assert.NotNull ensures 'result' is not null here.
+        Assert.Equal(expectedPrice, result.TotalPrice, precision: 3); 
+#pragma warning restore CS8602
     }
-} 
+}

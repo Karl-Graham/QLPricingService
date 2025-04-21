@@ -45,7 +45,7 @@ public class PricingDbContext : DbContext
 
         // === Seed Data ===
         // (Keep comments explaining which customer/scenario is being seeded)
-        modelBuilder.Entity<Service>().HasData(
+        /* modelBuilder.Entity<Service>().HasData(
             new Service { Id = 1, Name = "Service A", BasePricePerDay = 0.2m, ChargesOnWeekends = false },
             new Service { Id = 2, Name = "Service B", BasePricePerDay = 0.24m, ChargesOnWeekends = false },
             new Service { Id = 3, Name = "Service C", BasePricePerDay = 0.4m, ChargesOnWeekends = true }
@@ -95,6 +95,6 @@ public class PricingDbContext : DbContext
                 StartDate = new DateTime(2018, 1, 1),
                 EndDate = new DateTime(2099, 12, 31) // Far future end date
             }
-        );
+        ); */
     }
 } 

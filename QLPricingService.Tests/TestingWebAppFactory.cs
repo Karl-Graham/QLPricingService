@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using QLPricingService.Data; // Namespace for PricingDbContext
 using QLPricingService.Domain; // Namespace for domain entities
 using System.Data.Common; // For DbConnection
@@ -38,21 +39,67 @@ public class TestingWebAppFactory<TEntryPoint> : WebApplicationFactory<TEntryPoi
             });
 
             // Build the service provider to create a scope for seeding.
+            // REMOVED Seeding logic from here - will be done in CreateHost override
+            /*
             var sp = services.BuildServiceProvider();
-
             using (var scope = sp.CreateScope())
             {
                 var scopedServices = scope.ServiceProvider;
                 var db = scopedServices.GetRequiredService<PricingDbContext>();
                 var logger = scopedServices.GetRequiredService<ILogger<TestingWebAppFactory<TEntryPoint>>>();
 
-                db.Database.EnsureDeleted();
-                db.Database.EnsureCreated();
-
-                try
+                try 
                 {
-                    SeedDatabase(db);
-                    logger.LogInformation("In-memory database seeded for test run.");
+                    // Ensure DB is created (includes HasData seeding)
+                    db.Database.EnsureDeleted();
+                    db.Database.EnsureCreated();
+                    logger.LogInformation("Database created.");
+
+                    // Clear tables seeded by HasData to avoid conflicts
+                    db.Customers.RemoveRange(db.Customers);
+                    db.CustomerServiceUsages.RemoveRange(db.CustomerServiceUsages);
+                    db.Discounts.RemoveRange(db.Discounts);
+                    db.SaveChanges(); // Commit removals before adding test data
+                    logger.LogInformation("Existing seed data cleared.");
+
+                    // --- Seed Test-Specific Data --- 
+                    // Customers (1-7)
+                    db.Customers.AddRange(
+                        new Customer { Id = 1, Name = "Customer X", GlobalFreeDays = 0 },
+                        new Customer { Id = 2, Name = "Customer Y", GlobalFreeDays = 200 },
+                        new Customer { Id = 3, Name = "Weekend Test User A", GlobalFreeDays = 0 },
+                        new Customer { Id = 4, Name = "Weekend Test User C", GlobalFreeDays = 0 },
+                        new Customer { Id = 5, Name = "Discount Mid Start User", GlobalFreeDays = 0 },
+                        new Customer { Id = 6, Name = "Discount Mid End User", GlobalFreeDays = 0 },
+                        new Customer { Id = 7, Name = "Discount Full Period User", GlobalFreeDays = 0 }
+                    );
+
+                    // Customer Service Usages (for 1-7) 
+                    db.CustomerServiceUsages.AddRange(
+                        new CustomerServiceUsage { CustomerId = 1, ServiceId = 1, StartDate = new DateTime(2019, 9, 20) },
+                        new CustomerServiceUsage { CustomerId = 1, ServiceId = 3, StartDate = new DateTime(2019, 9, 20) },
+                        new CustomerServiceUsage { CustomerId = 2, ServiceId = 2, StartDate = new DateTime(2018, 1, 1) },
+                        new CustomerServiceUsage { CustomerId = 2, ServiceId = 3, StartDate = new DateTime(2018, 1, 1) },
+                        new CustomerServiceUsage { CustomerId = 3, ServiceId = 1, StartDate = new DateTime(2023, 1, 1) }, 
+                        new CustomerServiceUsage { CustomerId = 4, ServiceId = 3, StartDate = new DateTime(2023, 1, 1) },  
+                        new CustomerServiceUsage { CustomerId = 5, ServiceId = 3, StartDate = new DateTime(2023, 1, 1) }, 
+                        new CustomerServiceUsage { CustomerId = 6, ServiceId = 3, StartDate = new DateTime(2023, 1, 1) }, 
+                        new CustomerServiceUsage { CustomerId = 7, ServiceId = 3, StartDate = new DateTime(2023, 1, 1) }  
+                    );
+
+                    // Discounts (for 1, 2, 5, 6, 7)
+                    db.Discounts.AddRange(
+                        new Discount { CustomerId = 1, ServiceId = 3, Percentage = 0.20m, StartDate = new DateTime(2019, 9, 22), EndDate = new DateTime(2019, 9, 24) },
+                        new Discount { CustomerId = 2, ServiceId = 2, Percentage = 0.30m, StartDate = new DateTime(2018, 1, 1), EndDate = new DateTime(2099, 12, 31) },
+                        new Discount { CustomerId = 2, ServiceId = 3, Percentage = 0.30m, StartDate = new DateTime(2018, 1, 1), EndDate = new DateTime(2099, 12, 31) },
+                        new Discount { CustomerId = 5, ServiceId = 3, Percentage = 0.50m, StartDate = new DateTime(2023, 11, 6), EndDate = new DateTime(2023, 11, 10) },
+                        new Discount { CustomerId = 6, ServiceId = 3, Percentage = 0.25m, StartDate = new DateTime(2023, 11, 1), EndDate = new DateTime(2023, 11, 5) },
+                        new Discount { CustomerId = 7, ServiceId = 3, Percentage = 0.10m, StartDate = new DateTime(2023, 11, 1), EndDate = new DateTime(2023, 11, 10) }
+                    );
+
+                    // Save all test data
+                    db.SaveChanges();
+                    logger.LogInformation("In-memory database seeded with test data.");
                 }
                 catch (Exception ex)
                 {
@@ -60,82 +107,93 @@ public class TestingWebAppFactory<TEntryPoint> : WebApplicationFactory<TEntryPoi
                     throw;
                 }
             }
+            */
         });
 
         builder.UseEnvironment("Development");
     }
 
-    private void SeedDatabase(PricingDbContext context)
+    protected override IHost CreateHost(IHostBuilder builder)
     {
-        // Ensure clean state specifically for Customers before seeding test-specific ones
-        // This might be needed if DbContext.Database.EnsureCreated() doesn't clear perfectly
-        // or if there's interaction with DbContext's HasData seeding.
-        context.Customers.RemoveRange(context.Customers);
-        context.SaveChanges(); // Commit the removal before adding new ones
+        var host = base.CreateHost(builder);
 
-        // Customers (Match IDs used in DbContext HasData)
-        context.Customers.AddRange(
-            new Customer { Id = 1, Name = "Customer X", GlobalFreeDays = 0 },
-            new Customer { Id = 2, Name = "Customer Y", GlobalFreeDays = 200 }
-        );
-        context.SaveChanges(); // Save customers before adding related data
+        // Perform seeding after the host is built, using its scope
+        using (var scope = host.Services.CreateScope())
+        {
+            var scopedServices = scope.ServiceProvider;
+            var db = scopedServices.GetRequiredService<PricingDbContext>();
+            var logger = scopedServices.GetRequiredService<ILogger<TestingWebAppFactory<TEntryPoint>>>();
 
-        // Customer Service Usages (Use IDs from DbContext HasData for consistency if needed, or let DB generate)
-        context.CustomerServiceUsages.AddRange(
-            // Customer X
-            new CustomerServiceUsage { Id = 1, CustomerId = 1, ServiceId = 1, StartDate = new DateTime(2019, 9, 20) },
-            new CustomerServiceUsage { Id = 2, CustomerId = 1, ServiceId = 3, StartDate = new DateTime(2019, 9, 20) },
-            // Customer Y
-            new CustomerServiceUsage { Id = 3, CustomerId = 2, ServiceId = 2, StartDate = new DateTime(2018, 1, 1) },
-            new CustomerServiceUsage { Id = 4, CustomerId = 2, ServiceId = 3, StartDate = new DateTime(2018, 1, 1) }
-        );
+            try
+            {
+                // Ensure DB is created (includes HasData seeding)
+                // Note: EnsureDeleted might not be strictly necessary here if the DB is always fresh,
+                // but it guarantees a clean slate if the factory instance were reused unexpectedly.
+                db.Database.EnsureDeleted(); 
+                db.Database.EnsureCreated();
+                logger.LogInformation("Database created by CreateHost override.");
 
-        // Discounts (Use IDs from DbContext HasData for consistency if needed, or let DB generate)
-        context.Discounts.AddRange(
-            // Customer X
-            new Discount
-            {
-                Id = 1,
-                CustomerId = 1,
-                ServiceId = 3, // Discount for Service C
-                Percentage = 0.20m, 
-                StartDate = new DateTime(2019, 9, 22),
-                EndDate = new DateTime(2019, 9, 24)
-            },
-            // Customer Y
-            new Discount // 30% discount for Service B
-            {
-                Id = 2,
-                CustomerId = 2,
-                ServiceId = 2,
-                Percentage = 0.30m,
-                StartDate = new DateTime(2018, 1, 1),
-                EndDate = new DateTime(2099, 12, 31) // Far future end date
-            },
-            new Discount // 30% discount for Service C
-            {
-                Id = 3,
-                CustomerId = 2,
-                ServiceId = 3,
-                Percentage = 0.30m,
-                StartDate = new DateTime(2018, 1, 1),
-                EndDate = new DateTime(2099, 12, 31) // Far future end date
+                // Clear tables potentially seeded by HasData to avoid conflicts
+                db.Customers.RemoveRange(db.Customers);
+                db.CustomerServiceUsages.RemoveRange(db.CustomerServiceUsages);
+                db.Discounts.RemoveRange(db.Discounts);
+                db.SaveChanges(); // Commit removals before adding test data
+                logger.LogInformation("Existing seed data cleared by CreateHost override.");
+
+                // --- Seed Test-Specific Data --- 
+                // Customers (1-7)
+                 db.Customers.AddRange(
+                    new Customer { Id = 1, Name = "Customer X", GlobalFreeDays = 0 },
+                    new Customer { Id = 2, Name = "Customer Y", GlobalFreeDays = 200 },
+                    new Customer { Id = 3, Name = "Weekend Test User A", GlobalFreeDays = 0 },
+                    new Customer { Id = 4, Name = "Weekend Test User C", GlobalFreeDays = 0 },
+                    new Customer { Id = 5, Name = "Discount Mid Start User", GlobalFreeDays = 0 },
+                    new Customer { Id = 6, Name = "Discount Mid End User", GlobalFreeDays = 0 },
+                    new Customer { Id = 7, Name = "Discount Full Period User", GlobalFreeDays = 0 }
+                );
+
+                // Services (A, B, C)
+                db.Services.AddRange(
+                    new Service { Id = 1, Name = "Service A", BasePricePerDay = 0.2m, ChargesOnWeekends = false },
+                    new Service { Id = 2, Name = "Service B", BasePricePerDay = 0.24m, ChargesOnWeekends = false },
+                    new Service { Id = 3, Name = "Service C", BasePricePerDay = 0.4m, ChargesOnWeekends = true }
+                 );
+
+                // Customer Service Usages (for 1-7) 
+                db.CustomerServiceUsages.AddRange(
+                    new CustomerServiceUsage { CustomerId = 1, ServiceId = 1, StartDate = new DateTime(2019, 9, 20) },
+                    new CustomerServiceUsage { CustomerId = 1, ServiceId = 3, StartDate = new DateTime(2019, 9, 20) },
+                    new CustomerServiceUsage { CustomerId = 2, ServiceId = 2, StartDate = new DateTime(2018, 1, 1) },
+                    new CustomerServiceUsage { CustomerId = 2, ServiceId = 3, StartDate = new DateTime(2018, 1, 1) },
+                    new CustomerServiceUsage { CustomerId = 3, ServiceId = 1, StartDate = new DateTime(2023, 1, 1) }, 
+                    new CustomerServiceUsage { CustomerId = 4, ServiceId = 3, StartDate = new DateTime(2023, 1, 1) },  
+                    new CustomerServiceUsage { CustomerId = 5, ServiceId = 3, StartDate = new DateTime(2023, 1, 1) }, 
+                    new CustomerServiceUsage { CustomerId = 6, ServiceId = 3, StartDate = new DateTime(2023, 1, 1) }, 
+                    new CustomerServiceUsage { CustomerId = 7, ServiceId = 3, StartDate = new DateTime(2023, 1, 1) }  
+                );
+
+                // Discounts (for 1, 2, 5, 6, 7)
+                 db.Discounts.AddRange(
+                    new Discount { CustomerId = 1, ServiceId = 3, Percentage = 0.20m, StartDate = new DateTime(2019, 9, 22), EndDate = new DateTime(2019, 9, 24) },
+                    new Discount { CustomerId = 2, ServiceId = 2, Percentage = 0.30m, StartDate = new DateTime(2018, 1, 1), EndDate = new DateTime(2099, 12, 31) },
+                    new Discount { CustomerId = 2, ServiceId = 3, Percentage = 0.30m, StartDate = new DateTime(2018, 1, 1), EndDate = new DateTime(2099, 12, 31) },
+                    new Discount { CustomerId = 5, ServiceId = 3, Percentage = 0.50m, StartDate = new DateTime(2023, 11, 6), EndDate = new DateTime(2023, 11, 10) },
+                    new Discount { CustomerId = 6, ServiceId = 3, Percentage = 0.25m, StartDate = new DateTime(2023, 11, 1), EndDate = new DateTime(2023, 11, 5) },
+                    new Discount { CustomerId = 7, ServiceId = 3, Percentage = 0.10m, StartDate = new DateTime(2023, 11, 1), EndDate = new DateTime(2023, 11, 10) }
+                );
+
+                // Save all test data
+                db.SaveChanges();
+                logger.LogInformation("In-memory database seeded by CreateHost override.");
             }
-        );
-        
-        // Remove Test Case 2 discount logic explanation (moved to README/Design Notes)
-        // context.SaveChanges(); // Save changes after adding usages/discounts
-        // Using AddRange + single SaveChanges is slightly more efficient
-        try
-        {
-             context.SaveChanges();
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "An error occurred seeding the database in CreateHost override.");
+                throw;
+            }
         }
-        catch(DbUpdateException ex)
-        {
-             // Log or inspect ex.Entries to see what caused the issue
-             Console.WriteLine($"Error saving seed data: {ex.InnerException?.Message ?? ex.Message}");
-             throw;
-        }
+
+        return host;
     }
 
     // Dispose the connection when the factory is disposed

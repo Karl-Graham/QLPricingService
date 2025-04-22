@@ -53,13 +53,10 @@ public class HandlerTests : IDisposable
     [Fact]
     public async Task HandleAsync_InvalidDateRange_ReturnsBadRequest()
     {
-        // Arrange
-        var query = new CalculatePriceQuery(1, new DateTime(2023, 1, 10), new DateTime(2023, 1, 1)); // End before start
+        var query = new CalculatePriceQuery(1, new DateTime(2023, 1, 10), new DateTime(2023, 1, 1));
 
-        // Act
         var result = await _handler.HandleAsync(query);
 
-        // Assert
         Assert.Null(result.Response);
         Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
         Assert.Equal("EndDate must be on or after StartDate.", result.ErrorMessage);
@@ -68,15 +65,12 @@ public class HandlerTests : IDisposable
     [Fact]
     public async Task HandleAsync_CustomerNotFound_ReturnsNotFound()
     {
-        // Arrange
         var customerId = 999;
         var query = new CalculatePriceQuery(customerId, new DateTime(2023, 1, 1), new DateTime(2023, 1, 10));
         // Note: Database is empty except for Services, so customer 999 won't be found
 
-        // Act
         var (_, errorMessage, statusCode) = await _handler.HandleAsync(query);
 
-        // Assert
         Assert.Equal(HttpStatusCode.NotFound, statusCode);
         Assert.Contains("not found", errorMessage);
         Assert.Contains(customerId.ToString(), errorMessage);
@@ -85,7 +79,6 @@ public class HandlerTests : IDisposable
     [Fact]
     public async Task HandleAsync_TestCase1Logic_ReturnsCorrectPrice()
     {
-        // Arrange
         int customerId = 1;
         var startDate = new DateTime(2019, 9, 20);
         var endDate = new DateTime(2019, 9, 30);
@@ -109,10 +102,8 @@ public class HandlerTests : IDisposable
 
         var query = new CalculatePriceQuery(customerId, startDate, endDate);
 
-        // Act
         var (response, errorMessage, statusCode) = await _handler.HandleAsync(query);
 
-        // Assert
         Assert.Equal(HttpStatusCode.OK, statusCode);
         Assert.Null(errorMessage);
         Assert.NotNull(response);
@@ -122,7 +113,6 @@ public class HandlerTests : IDisposable
     [Fact]
     public async Task HandleAsync_TestCase2Logic_ReturnsCorrectPrice()
     {
-        // Arrange
         int customerId = 2;
         var startDate = new DateTime(2018, 1, 1);
         var endDate = new DateTime(2019, 9, 30);
@@ -157,10 +147,8 @@ public class HandlerTests : IDisposable
 
         var query = new CalculatePriceQuery(customerId, startDate, endDate);
 
-        // Act
         var (response, errorMessage, statusCode) = await _handler.HandleAsync(query);
 
-        // Assert
         Assert.Equal(HttpStatusCode.OK, statusCode);
         Assert.Null(errorMessage);
         Assert.NotNull(response);
@@ -172,7 +160,6 @@ public class HandlerTests : IDisposable
     [Fact]
     public async Task HandleAsync_ServiceWithoutWeekendCharging_SkipsWeekends()
     {
-        // Arrange
         int customerId = 3;
         var startDate = new DateTime(2023, 10, 23); // Monday
         var endDate = new DateTime(2023, 10, 29);   // Sunday
@@ -188,10 +175,8 @@ public class HandlerTests : IDisposable
 
         var query = new CalculatePriceQuery(customerId, startDate, endDate);
 
-        // Act
         var (response, _, statusCode) = await _handler.HandleAsync(query);
 
-        // Assert
         Assert.Equal(HttpStatusCode.OK, statusCode);
         Assert.NotNull(response);
         Assert.Equal(expectedTotalPrice, response.TotalPrice, precision: 2);
@@ -200,7 +185,6 @@ public class HandlerTests : IDisposable
     [Fact]
     public async Task HandleAsync_ServiceWithWeekendCharging_IncludesWeekends()
     {
-        // Arrange
         int customerId = 4;
         var startDate = new DateTime(2023, 10, 23); // Monday
         var endDate = new DateTime(2023, 10, 29);   // Sunday
@@ -216,10 +200,8 @@ public class HandlerTests : IDisposable
 
         var query = new CalculatePriceQuery(customerId, startDate, endDate);
 
-        // Act
         var (response, _, statusCode) = await _handler.HandleAsync(query);
 
-        // Assert
         Assert.Equal(HttpStatusCode.OK, statusCode);
         Assert.NotNull(response);
         Assert.Equal(expectedTotalPrice, response.TotalPrice, precision: 2);
@@ -230,7 +212,6 @@ public class HandlerTests : IDisposable
     [Fact]
     public async Task HandleAsync_DiscountStartsMidPeriod_AppliesCorrectly()
     {
-        // Arrange
         int customerId = 5;
         var queryStartDate = new DateTime(2023, 11, 1); // Wed
         var queryEndDate = new DateTime(2023, 11, 10);  // Fri (next week)
@@ -257,10 +238,8 @@ public class HandlerTests : IDisposable
 
         var query = new CalculatePriceQuery(customerId, queryStartDate, queryEndDate);
 
-        // Act
         var (response, _, statusCode) = await _handler.HandleAsync(query);
 
-        // Assert
         Assert.Equal(HttpStatusCode.OK, statusCode);
         Assert.NotNull(response);
         Assert.Equal(expectedTotalPrice, response.TotalPrice, precision: 3);
@@ -269,7 +248,6 @@ public class HandlerTests : IDisposable
     [Fact]
     public async Task HandleAsync_DiscountEndsMidPeriod_AppliesCorrectly()
     {
-        // Arrange
         int customerId = 6;
         var queryStartDate = new DateTime(2023, 11, 1); // Wed
         var queryEndDate = new DateTime(2023, 11, 10);  // Fri (next week)
@@ -296,10 +274,8 @@ public class HandlerTests : IDisposable
 
         var query = new CalculatePriceQuery(customerId, queryStartDate, queryEndDate);
 
-        // Act
         var (response, _, statusCode) = await _handler.HandleAsync(query);
 
-        // Assert
         Assert.Equal(HttpStatusCode.OK, statusCode);
         Assert.NotNull(response);
         Assert.Equal(expectedTotalPrice, response.TotalPrice, precision: 3);
@@ -308,7 +284,6 @@ public class HandlerTests : IDisposable
     [Fact]
     public async Task HandleAsync_DiscountCoversFullPeriod_AppliesCorrectly()
     {
-        // Arrange
         int customerId = 7;
         var queryStartDate = new DateTime(2023, 11, 1); // Wed
         var queryEndDate = new DateTime(2023, 11, 10);  // Fri (next week)
@@ -334,10 +309,8 @@ public class HandlerTests : IDisposable
 
         var query = new CalculatePriceQuery(customerId, queryStartDate, queryEndDate);
 
-        // Act
         var (response, _, statusCode) = await _handler.HandleAsync(query);
 
-        // Assert
         Assert.Equal(HttpStatusCode.OK, statusCode);
         Assert.NotNull(response);
         Assert.Equal(expectedTotalPrice, response.TotalPrice, precision: 3);
@@ -348,7 +321,6 @@ public class HandlerTests : IDisposable
     [Fact]
     public async Task HandleAsync_FreeDaysLessThanChargeable_ReducesPrice()
     {
-        // Arrange
         int customerId = 8;
         var queryStartDate = new DateTime(2023, 12, 1); // Fri
         var queryEndDate = new DateTime(2023, 12, 10);  // Sun
@@ -363,10 +335,8 @@ public class HandlerTests : IDisposable
 
         var query = new CalculatePriceQuery(customerId, queryStartDate, queryEndDate);
 
-        // Act
         var (response, _, statusCode) = await _handler.HandleAsync(query);
 
-        // Assert
         Assert.Equal(HttpStatusCode.OK, statusCode);
         Assert.NotNull(response);
         Assert.Equal(expectedTotalPrice, response.TotalPrice, precision: 3);
@@ -375,7 +345,6 @@ public class HandlerTests : IDisposable
     [Fact]
     public async Task HandleAsync_FreeDaysEqualToChargeable_ReturnsZeroPrice()
     {
-        // Arrange
         int customerId = 9;
         var queryStartDate = new DateTime(2023, 12, 1); // Fri
         var queryEndDate = new DateTime(2023, 12, 10);  // Sun
@@ -390,10 +359,8 @@ public class HandlerTests : IDisposable
 
         var query = new CalculatePriceQuery(customerId, queryStartDate, queryEndDate);
 
-        // Act
         var (response, _, statusCode) = await _handler.HandleAsync(query);
 
-        // Assert
         Assert.Equal(HttpStatusCode.OK, statusCode);
         Assert.NotNull(response);
         Assert.Equal(expectedTotalPrice, response.TotalPrice, precision: 3);
@@ -402,7 +369,6 @@ public class HandlerTests : IDisposable
     [Fact]
     public async Task HandleAsync_FreeDaysMoreThanChargeable_ReturnsZeroPrice()
     {
-        // Arrange
         int customerId = 10;
         var queryStartDate = new DateTime(2023, 12, 1); // Fri
         var queryEndDate = new DateTime(2023, 12, 10);  // Sun
@@ -417,10 +383,8 @@ public class HandlerTests : IDisposable
 
         var query = new CalculatePriceQuery(customerId, queryStartDate, queryEndDate);
 
-        // Act
         var (response, _, statusCode) = await _handler.HandleAsync(query);
 
-        // Assert
         Assert.Equal(HttpStatusCode.OK, statusCode);
         Assert.NotNull(response);
         Assert.Equal(expectedTotalPrice, response.TotalPrice, precision: 3);
@@ -431,7 +395,6 @@ public class HandlerTests : IDisposable
     [Fact]
     public async Task HandleAsync_MultipleServicesAndDiscount_CalculatesCorrectTotal()
     {
-        // Arrange
         int customerId = 11;
         var queryStartDate = new DateTime(2024, 1, 1); // Monday
         var queryEndDate = new DateTime(2024, 1, 14);  // Sunday (2 full weeks)
@@ -490,10 +453,8 @@ public class HandlerTests : IDisposable
 
         var query = new CalculatePriceQuery(customerId, queryStartDate, queryEndDate);
 
-        // Act
         var (response, _, statusCode) = await _handler.HandleAsync(query);
 
-        // Assert
         Assert.Equal(HttpStatusCode.OK, statusCode);
         Assert.NotNull(response);
         Assert.Equal(expectedTotalPrice, response.TotalPrice, precision: 3);

@@ -23,7 +23,6 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
     [Fact]
     public async Task CalculatePrice_TestCase1_ReturnsCorrectPrice()
     {
-        // Arrange
         var client = _factory.CreateClient();
         int customerId = 1; // Customer X
         var startDate = new DateTime(2019, 9, 20);
@@ -31,10 +30,8 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
         var expectedTotalPrice = 5.56m; // Corrected expected value based on handler logic
         var url = $"/pricing?customerId={customerId}&startDate={FormatDate(startDate)}&endDate={FormatDate(endDate)}";
 
-        // Act
         var response = await client.GetAsync(url);
 
-        // Assert
         response.EnsureSuccessStatusCode(); // Status Code 200-299
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -46,7 +43,6 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
     [Fact]
     public async Task CalculatePrice_TestCase2_ReturnsCorrectPrice()
     {
-        // Arrange
         var client = _factory.CreateClient();
         int customerId = 2; // Customer Y
         var startDate = new DateTime(2018, 1, 1);
@@ -54,10 +50,8 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
         var expectedTotalPrice = 196.224m; // Value obtained from the previous test run
         var url = $"/pricing?customerId={customerId}&startDate={FormatDate(startDate)}&endDate={FormatDate(endDate)}";
 
-        // Act
         var response = await client.GetAsync(url);
 
-        // Assert
         response.EnsureSuccessStatusCode();
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -69,17 +63,14 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
     [Fact]
     public async Task CalculatePrice_InvalidCustomerId_ReturnsNotFound()
     {
-        // Arrange
         var client = _factory.CreateClient();
         int customerId = 999; // Non-existent customer ID
         var startDate = new DateTime(2023, 1, 1);
         var endDate = new DateTime(2023, 1, 10);
         var url = $"/pricing?customerId={customerId}&startDate={FormatDate(startDate)}&endDate={FormatDate(endDate)}";
 
-        // Act
         var response = await client.GetAsync(url);
 
-        // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
 
         // Check the response body message (expecting { Message: "..." })
@@ -91,17 +82,14 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
     [Fact]
     public async Task CalculatePrice_InvalidDateRange_ReturnsBadRequest()
     {
-        // Arrange
         var client = _factory.CreateClient();
         int customerId = 1; // Use existing customer ID 1
         var startDate = new DateTime(2023, 1, 10);
         var endDate = new DateTime(2023, 1, 1); // End date before start date
         var url = $"/pricing?customerId={customerId}&startDate={FormatDate(startDate)}&endDate={FormatDate(endDate)}";
 
-        // Act
         var response = await client.GetAsync(url);
 
-        // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 
         // Check the response body message (expecting { Message: "..." })
@@ -113,7 +101,6 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
     [Fact]
     public async Task CalculatePriceByName_TestCase1_ReturnsCorrectPrice()
     {
-        // Arrange
         var client = _factory.CreateClient();
         string customerName = "Customer X"; // Use seeded name
         var startDate = new DateTime(2019, 9, 20);
@@ -123,10 +110,8 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
         var encodedCustomerName = System.Net.WebUtility.UrlEncode(customerName);
         var url = $"/pricing/by-name?customerName={encodedCustomerName}&startDate={FormatDate(startDate)}&endDate={FormatDate(endDate)}";
 
-        // Act
         var response = await client.GetAsync(url);
 
-        // Assert
         response.EnsureSuccessStatusCode();
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var result = await response.Content.ReadFromJsonAsync<CalculatePriceResponse>();
@@ -137,7 +122,6 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
     [Fact]
     public async Task CalculatePriceByName_TestCase2_ReturnsCorrectPrice()
     {
-        // Arrange
         var client = _factory.CreateClient();
         string customerName = "Customer Y"; // Use seeded name
         var startDate = new DateTime(2018, 1, 1);
@@ -146,10 +130,8 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
         var encodedCustomerName = System.Net.WebUtility.UrlEncode(customerName);
         var url = $"/pricing/by-name?customerName={encodedCustomerName}&startDate={FormatDate(startDate)}&endDate={FormatDate(endDate)}";
 
-        // Act
         var response = await client.GetAsync(url);
 
-        // Assert
         response.EnsureSuccessStatusCode();
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var result = await response.Content.ReadFromJsonAsync<CalculatePriceResponse>();
@@ -160,7 +142,6 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
     [Fact]
     public async Task CalculatePriceByName_InvalidName_ReturnsNotFound()
     {
-        // Arrange
         var client = _factory.CreateClient();
         string customerName = "Customer Z"; // Non-existent name
         var startDate = new DateTime(2023, 1, 1);
@@ -168,10 +149,8 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
         var encodedCustomerName = System.Net.WebUtility.UrlEncode(customerName);
         var url = $"/pricing/by-name?customerName={encodedCustomerName}&startDate={FormatDate(startDate)}&endDate={FormatDate(endDate)}";
 
-        // Act
         var response = await client.GetAsync(url);
 
-        // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
         Assert.NotNull(error);
@@ -184,17 +163,14 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
     [InlineData("   ")]
     public async Task CalculatePriceByName_EmptyOrWhitespaceName_ReturnsBadRequest(string customerName)
     {
-        // Arrange
         var client = _factory.CreateClient();
         var startDate = new DateTime(2023, 1, 1);
         var endDate = new DateTime(2023, 1, 10);
         var encodedCustomerName = System.Net.WebUtility.UrlEncode(customerName ?? string.Empty);
         var url = $"/pricing/by-name?customerName={encodedCustomerName}&startDate={FormatDate(startDate)}&endDate={FormatDate(endDate)}";
 
-        // Act
         var response = await client.GetAsync(url);
 
-        // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         var error = await response.Content.ReadFromJsonAsync<ErrorResponse>();
         Assert.NotNull(error);
@@ -209,7 +185,6 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
     [Fact]
     public async Task CalculatePrice_ServiceWithoutWeekendCharging_SkipsWeekends()
     {
-        // Arrange
         var client = _factory.CreateClient();
         int customerId = 3; // Uses Service A (0.2/day, no weekends) seeded in TestingWebAppFactory
         var startDate = new DateTime(2023, 10, 23); // Monday
@@ -219,10 +194,8 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
         var expectedTotalPrice = 5 * 0.2m;
         var url = $"/pricing?customerId={customerId}&startDate={startDate:O}&endDate={endDate:O}";
 
-        // Act
         var response = await client.GetAsync(url);
 
-        // Assert
         response.EnsureSuccessStatusCode(); // Status Code 200-299
         var content = await response.Content.ReadFromJsonAsync<CalculatePriceResponse>();
         Assert.NotNull(content);
@@ -232,7 +205,6 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
     [Fact]
     public async Task CalculatePrice_ServiceWithWeekendCharging_IncludesWeekends()
     {
-        // Arrange
         var client = _factory.CreateClient();
         int customerId = 4; // Uses Service C (0.4/day, charges weekends) seeded in TestingWebAppFactory
         var startDate = new DateTime(2023, 10, 23); // Monday
@@ -242,10 +214,8 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
         var expectedTotalPrice = 7 * 0.4m;
         var url = $"/pricing?customerId={customerId}&startDate={startDate:O}&endDate={endDate:O}";
 
-        // Act
         var response = await client.GetAsync(url);
 
-        // Assert
         response.EnsureSuccessStatusCode(); // Status Code 200-299
         var content = await response.Content.ReadFromJsonAsync<CalculatePriceResponse>();
         Assert.NotNull(content);
@@ -255,7 +225,6 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
     [Fact]
     public async Task CalculatePrice_DiscountStartsMidPeriod_AppliesCorrectly()
     {
-        // Arrange
         var client = _factory.CreateClient();
         int customerId = 5; // Seeded in TestingWebAppFactory
         var queryStartDate = new DateTime(2023, 11, 1); // Wed
@@ -267,10 +236,8 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
         var expectedTotalPrice = 3.0m;
         var url = $"/pricing?customerId={customerId}&startDate={queryStartDate:O}&endDate={queryEndDate:O}";
 
-        // Act
         var response = await client.GetAsync(url);
 
-        // Assert
         response.EnsureSuccessStatusCode();
         var content = await response.Content.ReadFromJsonAsync<CalculatePriceResponse>();
         Assert.NotNull(content);
@@ -280,7 +247,6 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
     [Fact]
     public async Task CalculatePrice_DiscountEndsMidPeriod_AppliesCorrectly()
     {
-        // Arrange
         var client = _factory.CreateClient();
         int customerId = 6; // Seeded in TestingWebAppFactory
         var queryStartDate = new DateTime(2023, 11, 1); // Wed
@@ -292,10 +258,8 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
         var expectedTotalPrice = 3.5m;
         var url = $"/pricing?customerId={customerId}&startDate={queryStartDate:O}&endDate={queryEndDate:O}";
 
-        // Act
         var response = await client.GetAsync(url);
 
-        // Assert
         response.EnsureSuccessStatusCode();
         var content = await response.Content.ReadFromJsonAsync<CalculatePriceResponse>();
         Assert.NotNull(content);
@@ -305,7 +269,6 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
     [Fact]
     public async Task CalculatePrice_DiscountCoversFullPeriod_AppliesCorrectly()
     {
-        // Arrange
         var client = _factory.CreateClient();
         int customerId = 7; // Seeded in TestingWebAppFactory
         var queryStartDate = new DateTime(2023, 11, 1); // Wed
@@ -316,10 +279,8 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
         var expectedTotalPrice = 3.6m;
         var url = $"/pricing?customerId={customerId}&startDate={queryStartDate:O}&endDate={queryEndDate:O}";
 
-        // Act
         var response = await client.GetAsync(url);
 
-        // Assert
         response.EnsureSuccessStatusCode();
         var content = await response.Content.ReadFromJsonAsync<CalculatePriceResponse>();
         Assert.NotNull(content);
@@ -334,14 +295,11 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
     [InlineData(3, "2023-11-01", "2023-11-10", 1.6)] // Customer 3: Uses A (no weekend charge)
     public async Task CalculatePrice_BasicScenarios_ReturnsCorrectPrice(int customerId, string startDate, string endDate, decimal expectedPrice)
     {
-        // Arrange
         var client = _factory.CreateClient();
         var url = $"/pricing?customerId={customerId}&startDate={startDate}&endDate={endDate}";
 
-        // Act
         var response = await client.GetAsync(url);
 
-        // Assert
         response.EnsureSuccessStatusCode(); // Status Code 200-299
         Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType!.ToString());
 
@@ -354,14 +312,11 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
     [InlineData(5, "2023-11-01", "2023-11-10", 3.0)] // Customer 5: Discount starts mid-period
     public async Task CalculatePrice_DiscountStartsMidPeriod_ReturnsCorrectPrice(int customerId, string startDate, string endDate, decimal expectedPrice)
     {
-        // Arrange
         var client = _factory.CreateClient();
         var url = $"/pricing?customerId={customerId}&startDate={startDate}&endDate={endDate}";
 
-        // Act
         var response = await client.GetAsync(url);
 
-        // Assert
         response.EnsureSuccessStatusCode(); // Status Code 200-299
         Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType!.ToString());
 
@@ -374,14 +329,11 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
     [InlineData(6, "2023-11-01", "2023-11-10", 3.5)] // Customer 6: Discount ends mid-period
     public async Task CalculatePrice_DiscountEndsMidPeriod_ReturnsCorrectPrice(int customerId, string startDate, string endDate, decimal expectedPrice)
     {
-        // Arrange
         var client = _factory.CreateClient();
         var url = $"/pricing?customerId={customerId}&startDate={startDate}&endDate={endDate}";
 
-        // Act
         var response = await client.GetAsync(url);
 
-        // Assert
         response.EnsureSuccessStatusCode(); // Status Code 200-299
         Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType!.ToString());
 
@@ -394,14 +346,11 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
     [InlineData(7, "2023-11-01", "2023-11-10", 3.6)] // Customer 7: Discount covers full period
     public async Task CalculatePrice_DiscountCoversFullPeriod_ReturnsCorrectPrice(int customerId, string startDate, string endDate, decimal expectedPrice)
     {
-        // Arrange
         var client = _factory.CreateClient();
         var url = $"/pricing?customerId={customerId}&startDate={startDate}&endDate={endDate}";
 
-        // Act
         var response = await client.GetAsync(url);
 
-        // Assert
         response.EnsureSuccessStatusCode(); // Status Code 200-299
         Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType!.ToString());
 
@@ -455,14 +404,11 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
     [InlineData(12, "2024-01-01", "2024-01-05", 0.00)]
     public async Task CalculatePrice_EdgeCases_ReturnsCorrectPrice(int customerId, string startDate, string endDate, decimal expectedPrice)
     {
-        // Arrange
         var client = _factory.CreateClient();
         var url = $"/pricing?customerId={customerId}&startDate={startDate}&endDate={endDate}";
 
-        // Act
         var response = await client.GetAsync(url);
 
-        // Assert
         response.EnsureSuccessStatusCode(); // Status Code 200-299
         Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType!.ToString());
 

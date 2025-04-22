@@ -14,7 +14,7 @@ This project implements a .NET Minimal Web API service responsible for calculati
 
 ## Prerequisites
 
-*   .NET SDK (Version compatible with the project - e.g., .NET 8, .NET 9/10 Preview)
+*   .NET 8 SDK
 
 ## Setup & Running
 

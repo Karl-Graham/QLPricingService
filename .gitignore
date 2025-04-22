@@ -43,4 +43,7 @@ secrets.json
 # Ignore build outputs and temporary files
 *.bak
 *.tmp
-*~ 
+*~
+
+# Interview-specific files
+INTERVIEW_TALKING_POINTS.md 

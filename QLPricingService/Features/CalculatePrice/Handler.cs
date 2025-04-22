@@ -11,7 +11,7 @@ public class Handler
     private readonly ILogger<Handler> _logger; // Add logger
 
     // Inject ILogger
-    public Handler(PricingDbContext dbContext, ILogger<Handler> logger) 
+    public Handler(PricingDbContext dbContext, ILogger<Handler> logger)
     {
         _dbContext = dbContext;
         _logger = logger; // Store logger
@@ -19,10 +19,10 @@ public class Handler
 
     // Return a tuple indicating success/failure and status code
     public async Task<(CalculatePriceResponse? Response, string? ErrorMessage, HttpStatusCode StatusCode)> HandleAsync(
-        CalculatePriceQuery query, 
+        CalculatePriceQuery query,
         CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Handling CalculatePrice query for Customer {CustomerId} from {StartDate} to {EndDate}", 
+        _logger.LogInformation("Handling CalculatePrice query for Customer {CustomerId} from {StartDate} to {EndDate}",
             query.CustomerId, query.StartDate, query.EndDate);
 
         // Reinstate manual validation call as automatic validation is not triggering reliably for GET
@@ -72,7 +72,7 @@ public class Handler
             _logger.LogWarning("Invalid date range provided: StartDate {StartDate} is after EndDate {EndDate}",
                 query.StartDate, query.EndDate);
             // Use the message from the validator for consistency
-            return (null, "EndDate must be on or after StartDate.", HttpStatusCode.BadRequest); 
+            return (null, "EndDate must be on or after StartDate.", HttpStatusCode.BadRequest);
         }
         return null; // No error
     }
@@ -88,4 +88,4 @@ public class Handler
             .AsSplitQuery() // Optimization for multiple collection Includes
             .FirstOrDefaultAsync(c => c.Id == customerId, cancellationToken);
     }
-} 
+}

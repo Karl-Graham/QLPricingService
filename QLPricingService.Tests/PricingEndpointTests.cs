@@ -58,7 +58,7 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
         var response = await client.GetAsync(url);
 
         // Assert
-        response.EnsureSuccessStatusCode(); 
+        response.EnsureSuccessStatusCode();
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var result = await response.Content.ReadFromJsonAsync<CalculatePriceResponse>();
@@ -85,7 +85,7 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
         // Check the response body message (expecting { Message: "..." })
         var error = await response.Content.ReadFromJsonAsync<ErrorResponse>(); // Use a simple record
         Assert.NotNull(error);
-        Assert.Contains("not found", error.Message, StringComparison.OrdinalIgnoreCase); 
+        Assert.Contains("not found", error.Message, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -127,11 +127,11 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
         var response = await client.GetAsync(url);
 
         // Assert
-        response.EnsureSuccessStatusCode(); 
+        response.EnsureSuccessStatusCode();
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var result = await response.Content.ReadFromJsonAsync<CalculatePriceResponse>();
         Assert.NotNull(result);
-        Assert.Equal(expectedTotalPrice, result.TotalPrice, precision: 2); 
+        Assert.Equal(expectedTotalPrice, result.TotalPrice, precision: 2);
     }
 
     [Fact]
@@ -141,7 +141,7 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
         var client = _factory.CreateClient();
         string customerName = "Customer Y"; // Use seeded name
         var startDate = new DateTime(2018, 1, 1);
-        var endDate = new DateTime(2019, 9, 30); 
+        var endDate = new DateTime(2019, 9, 30);
         var expectedTotalPrice = 196.224m; // Same expectation as by ID
         var encodedCustomerName = System.Net.WebUtility.UrlEncode(customerName);
         var url = $"/pricing/by-name?customerName={encodedCustomerName}&startDate={FormatDate(startDate)}&endDate={FormatDate(endDate)}";
@@ -154,7 +154,7 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         var result = await response.Content.ReadFromJsonAsync<CalculatePriceResponse>();
         Assert.NotNull(result);
-        Assert.Equal(expectedTotalPrice, result.TotalPrice, precision: 3); 
+        Assert.Equal(expectedTotalPrice, result.TotalPrice, precision: 3);
     }
 
     [Fact]
@@ -182,7 +182,7 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
-    public async Task CalculatePriceByName_EmptyOrWhitespaceName_ReturnsBadRequest(string? customerName)
+    public async Task CalculatePriceByName_EmptyOrWhitespaceName_ReturnsBadRequest(string customerName)
     {
         // Arrange
         var client = _factory.CreateClient();
@@ -271,7 +271,7 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
         var response = await client.GetAsync(url);
 
         // Assert
-        response.EnsureSuccessStatusCode(); 
+        response.EnsureSuccessStatusCode();
         var content = await response.Content.ReadFromJsonAsync<CalculatePriceResponse>();
         Assert.NotNull(content);
         Assert.Equal(expectedTotalPrice, content.TotalPrice, precision: 3);
@@ -343,11 +343,11 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
 
         // Assert
         response.EnsureSuccessStatusCode(); // Status Code 200-299
-        Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType.ToString());
+        Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType!.ToString());
 
         var result = await response.Content.ReadFromJsonAsync<CalculatePriceResponse>();
         Assert.NotNull(result);
-        Assert.Equal(expectedPrice, result.TotalPrice, precision: 2);
+        Assert.Equal(expectedPrice, result!.TotalPrice, precision: 2);
     }
 
     [Theory]
@@ -363,13 +363,11 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
 
         // Assert
         response.EnsureSuccessStatusCode(); // Status Code 200-299
-        Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType.ToString());
+        Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType!.ToString());
 
         var result = await response.Content.ReadFromJsonAsync<CalculatePriceResponse>();
         Assert.NotNull(result);
-#pragma warning disable CS8602 // Suppressed: Assert.NotNull ensures 'result' is not null here.
-        Assert.Equal(expectedPrice, result.TotalPrice, precision: 2);
-#pragma warning restore CS8602
+        Assert.Equal(expectedPrice, result!.TotalPrice, precision: 2);
     }
 
     [Theory]
@@ -385,13 +383,11 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
 
         // Assert
         response.EnsureSuccessStatusCode(); // Status Code 200-299
-        Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType.ToString());
+        Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType!.ToString());
 
         var result = await response.Content.ReadFromJsonAsync<CalculatePriceResponse>();
         Assert.NotNull(result);
-#pragma warning disable CS8602 // Suppressed: Assert.NotNull ensures 'result' is not null here.
-        Assert.Equal(expectedPrice, result.TotalPrice, precision: 2);
-#pragma warning restore CS8602
+        Assert.Equal(expectedPrice, result!.TotalPrice, precision: 2);
     }
 
     [Theory]
@@ -407,13 +403,11 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
 
         // Assert
         response.EnsureSuccessStatusCode(); // Status Code 200-299
-        Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType.ToString());
+        Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType!.ToString());
 
         var result = await response.Content.ReadFromJsonAsync<CalculatePriceResponse>();
         Assert.NotNull(result);
-#pragma warning disable CS8602 // Suppressed: Assert.NotNull ensures 'result' is not null here.
-        Assert.Equal(expectedPrice, result.TotalPrice, precision: 2);
-#pragma warning restore CS8602
+        Assert.Equal(expectedPrice, result!.TotalPrice, precision: 2);
     }
 
     // --- Edge Case Tests ---
@@ -451,7 +445,7 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
     // Chargeable days: Jan 1-5 (Mon-Fri) = 5 days
     // Costs: 0.2 * 5 = 1.0. Free days = 5. Cheapest 5 days (all 0.2) are skipped.
     // Price = 0.00
-    [InlineData(12, "2024-01-01", "2024-01-07", 0.00)] 
+    [InlineData(12, "2024-01-01", "2024-01-07", 0.00)]
     // Scenario 6: Free days exceed chargeable days
     // Customer 12, Service A (0.2/day, NO weekend charge), 5 free days
     // Query: Jan 1 (Mon) - Jan 5 (Fri) (5 days)
@@ -470,13 +464,11 @@ public class PricingEndpointTests : IClassFixture<TestingWebAppFactory<Program>>
 
         // Assert
         response.EnsureSuccessStatusCode(); // Status Code 200-299
-        Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType.ToString());
+        Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType!.ToString());
 
         var result = await response.Content.ReadFromJsonAsync<CalculatePriceResponse>();
         Assert.NotNull(result);
         // Use precision 3 for safety with intermediate calculations
-#pragma warning disable CS8602 // Suppressed: Assert.NotNull ensures 'result' is not null here.
-        Assert.Equal(expectedPrice, result.TotalPrice, precision: 3); 
-#pragma warning restore CS8602
+        Assert.Equal(expectedPrice, result!.TotalPrice, precision: 3);
     }
 }

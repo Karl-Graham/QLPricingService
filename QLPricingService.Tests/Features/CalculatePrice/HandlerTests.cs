@@ -28,7 +28,7 @@ public class HandlerTests : IDisposable
         _handler = new Handler(_dbContext, _mockLogger.Object);
 
         // Seed initial Service data needed for most tests
-        SeedServices(); 
+        SeedServices();
     }
 
     private void SeedServices()
@@ -101,7 +101,7 @@ public class HandlerTests : IDisposable
             Id = 1,
             CustomerId = customerId,
             ServiceId = 3, // Discount for Service C
-            Percentage = 0.20m, 
+            Percentage = 0.20m,
             StartDate = new DateTime(2019, 9, 22),
             EndDate = new DateTime(2019, 9, 24)
         });
@@ -125,10 +125,10 @@ public class HandlerTests : IDisposable
         // Arrange
         int customerId = 2;
         var startDate = new DateTime(2018, 1, 1);
-        var endDate = new DateTime(2019, 9, 30); 
+        var endDate = new DateTime(2019, 9, 30);
         var expectedTotalPrice = 196.224m; // Based on previous correct calculation
 
-        _dbContext.Customers.Add( new Customer { Id = customerId, GlobalFreeDays = 200 });
+        _dbContext.Customers.Add(new Customer { Id = customerId, GlobalFreeDays = 200 });
         _dbContext.CustomerServiceUsages.AddRange(
             new CustomerServiceUsage { Id = 3, CustomerId = customerId, ServiceId = 2, StartDate = new DateTime(2018, 1, 1) },
             new CustomerServiceUsage { Id = 4, CustomerId = customerId, ServiceId = 3, StartDate = new DateTime(2018, 1, 1) }
@@ -141,7 +141,7 @@ public class HandlerTests : IDisposable
                 ServiceId = 2,
                 Percentage = 0.30m,
                 StartDate = new DateTime(2018, 1, 1),
-                EndDate = new DateTime(2099, 12, 31) 
+                EndDate = new DateTime(2099, 12, 31)
             },
             new Discount // 30% discount for Service C
             {
@@ -150,7 +150,7 @@ public class HandlerTests : IDisposable
                 ServiceId = 3,
                 Percentage = 0.30m,
                 StartDate = new DateTime(2018, 1, 1),
-                EndDate = new DateTime(2099, 12, 31) 
+                EndDate = new DateTime(2099, 12, 31)
             }
         );
         await _dbContext.SaveChangesAsync();
@@ -164,9 +164,9 @@ public class HandlerTests : IDisposable
         Assert.Equal(HttpStatusCode.OK, statusCode);
         Assert.Null(errorMessage);
         Assert.NotNull(response);
-        Assert.Equal(expectedTotalPrice, response.TotalPrice, precision: 3); 
+        Assert.Equal(expectedTotalPrice, response.TotalPrice, precision: 3);
     }
-    
+
     // TODO: Add more granular tests for specific discount logic, free days, working days etc.
 
     [Fact]
@@ -247,7 +247,8 @@ public class HandlerTests : IDisposable
         _dbContext.CustomerServiceUsages.Add(new CustomerServiceUsage { CustomerId = customerId, ServiceId = 3, StartDate = queryStartDate }); // Service C
         _dbContext.Discounts.Add(new Discount
         {
-            CustomerId = customerId, ServiceId = 3,
+            CustomerId = customerId,
+            ServiceId = 3,
             Percentage = discountPercentage,
             StartDate = discountStartDate,
             EndDate = discountEndDate
@@ -285,7 +286,8 @@ public class HandlerTests : IDisposable
         _dbContext.CustomerServiceUsages.Add(new CustomerServiceUsage { CustomerId = customerId, ServiceId = 3, StartDate = queryStartDate }); // Service C
         _dbContext.Discounts.Add(new Discount
         {
-            CustomerId = customerId, ServiceId = 3,
+            CustomerId = customerId,
+            ServiceId = 3,
             Percentage = discountPercentage,
             StartDate = discountStartDate,
             EndDate = discountEndDate
@@ -322,7 +324,8 @@ public class HandlerTests : IDisposable
         _dbContext.CustomerServiceUsages.Add(new CustomerServiceUsage { CustomerId = customerId, ServiceId = 3, StartDate = queryStartDate }); // Service C
         _dbContext.Discounts.Add(new Discount
         {
-            CustomerId = customerId, ServiceId = 3,
+            CustomerId = customerId,
+            ServiceId = 3,
             Percentage = discountPercentage,
             StartDate = discountStartDate,
             EndDate = discountEndDate
@@ -445,9 +448,13 @@ public class HandlerTests : IDisposable
         // Chargeable days: 10 days (Jan 5-14)
         _dbContext.CustomerServiceUsages.Add(new CustomerServiceUsage { CustomerId = customerId, ServiceId = 3, StartDate = new DateTime(2024, 1, 5) });
         // Discount for Service C: 20% from Jan 8 - Jan 12
-        _dbContext.Discounts.Add(new Discount {
-            CustomerId = customerId, ServiceId = 3, Percentage = 0.20m,
-            StartDate = new DateTime(2024, 1, 8), EndDate = new DateTime(2024, 1, 12)
+        _dbContext.Discounts.Add(new Discount
+        {
+            CustomerId = customerId,
+            ServiceId = 3,
+            Percentage = 0.20m,
+            StartDate = new DateTime(2024, 1, 8),
+            EndDate = new DateTime(2024, 1, 12)
         });
         // Cost C calculation:
         // Jan 5, 6, 7: Full price (3 days * 0.4 = 1.2)
@@ -492,4 +499,4 @@ public class HandlerTests : IDisposable
         Assert.Equal(expectedTotalPrice, response.TotalPrice, precision: 3);
     }
 
-} 
+}

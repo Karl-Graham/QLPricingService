@@ -47,7 +47,7 @@ public static class PriceCalculator
                 // For now, we'll skip this usage if the service isn't loaded, 
                 // but this indicates a potential issue with data loading upstream.
                 // Consider throwing InvalidOperationException if Service navigation property is expected to be loaded.
-                continue; 
+                continue;
             }
 
             bool isChargeableDay = usage.Service.ChargesOnWeekends ||
@@ -84,11 +84,11 @@ public static class PriceCalculator
         {
             return 0m; // Or throw ArgumentNullException based on desired behavior
         }
-        
+
         // Sort daily costs low-to-high to remove the cheapest N days
         dailyCosts.Sort();
         int freeDaysToApply = Math.Min(freeDays, dailyCosts.Count);
         // Use Skip and Sum for potentially better performance on large lists
         return dailyCosts.Skip(freeDaysToApply).Sum();
     }
-} 
+}

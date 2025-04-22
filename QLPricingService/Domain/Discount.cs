@@ -12,4 +12,4 @@ public class Discount
     // Navigation properties
     public Customer? Customer { get; set; }
     public Service? Service { get; set; }
-} 
+}

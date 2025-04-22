@@ -10,4 +10,4 @@ public class Service
     // Navigation properties
     public ICollection<CustomerServiceUsage> CustomerUsages { get; set; } = new List<CustomerServiceUsage>();
     public ICollection<Discount> Discounts { get; set; } = new List<Discount>();
-} 
+}

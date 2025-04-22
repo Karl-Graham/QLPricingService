@@ -11,4 +11,4 @@ public class CustomerServiceUsage
     // Navigation properties
     public Customer? Customer { get; set; }
     public Service? Service { get; set; }
-} 
+}

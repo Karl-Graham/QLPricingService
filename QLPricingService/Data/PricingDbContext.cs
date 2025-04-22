@@ -26,19 +26,19 @@ public class PricingDbContext : DbContext
             entity.HasMany(c => c.Discounts).WithOne(d => d.Customer).HasForeignKey(d => d.CustomerId).OnDelete(DeleteBehavior.Cascade);
         });
 
-        modelBuilder.Entity<Service>(entity => 
+        modelBuilder.Entity<Service>(entity =>
         {
             entity.Property(s => s.BasePricePerDay).HasColumnType("decimal(18, 4)");
             entity.HasMany(s => s.CustomerUsages).WithOne(u => u.Service).HasForeignKey(u => u.ServiceId).OnDelete(DeleteBehavior.Cascade);
             entity.HasMany(s => s.Discounts).WithOne(d => d.Service).HasForeignKey(d => d.ServiceId).OnDelete(DeleteBehavior.Cascade);
         });
 
-        modelBuilder.Entity<CustomerServiceUsage>(entity => 
+        modelBuilder.Entity<CustomerServiceUsage>(entity =>
         {
             entity.Property(u => u.CustomerSpecificPricePerDay).HasColumnType("decimal(18, 4)");
         });
 
-        modelBuilder.Entity<Discount>(entity => 
+        modelBuilder.Entity<Discount>(entity =>
         {
             entity.Property(d => d.Percentage).HasColumnType("decimal(5, 4)");
         });
@@ -97,4 +97,4 @@ public class PricingDbContext : DbContext
             }
         ); */
     }
-} 
+}

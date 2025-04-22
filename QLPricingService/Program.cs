@@ -56,7 +56,7 @@ app.UseHttpsRedirection();
 
 // Define Pricing Endpoint
 app.MapGet("/pricing", async (
-    [FromQuery] int customerId, 
+    [FromQuery] int customerId,
     [FromQuery] DateTime startDate,
     [FromQuery] DateTime endDate,
     QLPricingService.Features.CalculatePrice.Handler handler,
@@ -64,14 +64,14 @@ app.MapGet("/pricing", async (
     =>
 {
     var query = new CalculatePriceQuery(customerId, startDate, endDate);
-    
+
     var (response, errorMessage, statusCode) = await handler.HandleAsync(query, cancellationToken);
 
     return statusCode switch
     {
         HttpStatusCode.OK => Results.Ok(response),
-        HttpStatusCode.NotFound => Results.NotFound(new { Message = errorMessage }),
-        HttpStatusCode.BadRequest => Results.BadRequest(new { Message = errorMessage }),
+        HttpStatusCode.NotFound => Results.Problem(detail: errorMessage, statusCode: (int)statusCode),
+        HttpStatusCode.BadRequest => Results.Problem(detail: errorMessage, statusCode: (int)statusCode),
         HttpStatusCode.InternalServerError => Results.Problem(detail: errorMessage, statusCode: (int)statusCode),
         _ => Results.Problem(detail: "An unexpected error occurred.", statusCode: 500)
     };
@@ -96,7 +96,7 @@ app.MapGet("/pricing/by-name", async (
 {
     if (string.IsNullOrWhiteSpace(customerName))
     {
-        return Results.BadRequest(new { Message = "Customer name cannot be empty." });
+        return Results.Problem(detail: "Customer name cannot be empty.", statusCode: (int)HttpStatusCode.BadRequest);
     }
 
     // Find customer by name
@@ -106,7 +106,7 @@ app.MapGet("/pricing/by-name", async (
 
     if (customer == null)
     {
-        return Results.NotFound(new { Message = $"Customer with name '{customerName}' not found." });
+        return Results.Problem(detail: $"Customer with name '{customerName}' not found.", statusCode: (int)HttpStatusCode.NotFound);
     }
 
     // Use the found customer ID to call the existing handler
@@ -117,8 +117,8 @@ app.MapGet("/pricing/by-name", async (
     return statusCode switch
     {
         HttpStatusCode.OK => Results.Ok(response),
-        HttpStatusCode.NotFound => Results.NotFound(new { Message = errorMessage }), // Should not happen if ID was just found, but handle defensively
-        HttpStatusCode.BadRequest => Results.BadRequest(new { Message = errorMessage }),
+        HttpStatusCode.NotFound => Results.Problem(detail: errorMessage, statusCode: (int)statusCode),
+        HttpStatusCode.BadRequest => Results.Problem(detail: errorMessage, statusCode: (int)statusCode),
         HttpStatusCode.InternalServerError => Results.Problem(detail: errorMessage, statusCode: (int)statusCode),
         _ => Results.Problem(detail: "An unexpected error occurred.", statusCode: 500)
     };

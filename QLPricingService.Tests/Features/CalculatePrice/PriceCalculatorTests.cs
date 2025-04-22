@@ -33,9 +33,11 @@ public class PriceCalculatorTests
         // Arrange
         var startDate = new DateTime(2024, 1, 1); // Monday
         var endDate = new DateTime(2024, 1, 7);   // Sunday (7 days total)
-        var customer = new Customer 
+        var customer = new Customer
         {
-            Id = 1, GlobalFreeDays = 0, Discounts = new List<Discount>(),
+            Id = 1,
+            GlobalFreeDays = 0,
+            Discounts = new List<Discount>(),
             ServiceUsages = new List<CustomerServiceUsage>
             {
                 new() { CustomerId = 1, Service = _serviceA, ServiceId = _serviceA.Id, StartDate = startDate }
@@ -57,9 +59,11 @@ public class PriceCalculatorTests
         // Arrange
         var startDate = new DateTime(2024, 1, 1); // Monday
         var endDate = new DateTime(2024, 1, 7);   // Sunday (7 days total)
-        var customer = new Customer 
+        var customer = new Customer
         {
-            Id = 1, GlobalFreeDays = 0, Discounts = new List<Discount>(),
+            Id = 1,
+            GlobalFreeDays = 0,
+            Discounts = new List<Discount>(),
             ServiceUsages = new List<CustomerServiceUsage>
             {
                 new() { CustomerId = 1, Service = _serviceC, ServiceId = _serviceC.Id, StartDate = startDate }
@@ -81,9 +85,10 @@ public class PriceCalculatorTests
         // Arrange
         var startDate = new DateTime(2024, 1, 1); // Monday
         var endDate = new DateTime(2024, 1, 10);  // Wednesday (10 days total)
-        var customer = new Customer 
+        var customer = new Customer
         {
-            Id = 1, GlobalFreeDays = 0, 
+            Id = 1,
+            GlobalFreeDays = 0,
             ServiceUsages = new List<CustomerServiceUsage>
             {
                 new() { CustomerId = 1, Service = _serviceC, ServiceId = _serviceC.Id, StartDate = startDate }
@@ -112,9 +117,10 @@ public class PriceCalculatorTests
         // Arrange
         var startDate = new DateTime(2024, 1, 1); // Monday
         var endDate = new DateTime(2024, 1, 10);  // Wednesday (10 days total)
-        var customer = new Customer 
+        var customer = new Customer
         {
-            Id = 1, GlobalFreeDays = 3, // 3 Free days
+            Id = 1,
+            GlobalFreeDays = 3, // 3 Free days
             Discounts = new List<Discount>(),
             ServiceUsages = new List<CustomerServiceUsage>
             {
@@ -132,7 +138,7 @@ public class PriceCalculatorTests
         // Assert
         Assert.Equal(expectedPrice, totalPrice, precision: 2);
     }
-    
+
     [Fact]
     public void CalculateTotalPrice_OverlappingDiscounts_UsesHighestPercentage()
     {
@@ -141,7 +147,8 @@ public class PriceCalculatorTests
         var endDate = new DateTime(2024, 1, 15);  // Monday (15 days total)
         var customer = new Customer
         {
-            Id = 10, GlobalFreeDays = 0,
+            Id = 10,
+            GlobalFreeDays = 0,
             ServiceUsages = new List<CustomerServiceUsage>
             {
                 new() { CustomerId = 10, Service = _serviceC, ServiceId = _serviceC.Id, StartDate = startDate }
@@ -173,12 +180,13 @@ public class PriceCalculatorTests
         var endDate = new DateTime(2024, 1, 10);  // Wednesday (10 days total)
         var customer = new Customer
         {
-            Id = 11, GlobalFreeDays = 0,
+            Id = 11,
+            GlobalFreeDays = 0,
             Discounts = new List<Discount>(), // No discount for this test
             ServiceUsages = new List<CustomerServiceUsage>
             {
                 // Use specific price 0.50 instead of Service C base 0.4
-                new() { CustomerId = 11, Service = _serviceC, ServiceId = _serviceC.Id, StartDate = startDate, CustomerSpecificPricePerDay = 0.50m } 
+                new() { CustomerId = 11, Service = _serviceC, ServiceId = _serviceC.Id, StartDate = startDate, CustomerSpecificPricePerDay = 0.50m }
             }
         };
         // Expect 10 days * 0.50 = 5.00
@@ -191,15 +199,16 @@ public class PriceCalculatorTests
         Assert.Equal(expectedPrice, totalPrice, precision: 2);
     }
 
-     [Fact]
+    [Fact]
     public void CalculateTotalPrice_FreeDaysEqualToChargeable_ReturnsZero()
     {
         // Arrange
         var startDate = new DateTime(2024, 1, 1); // Monday
         var endDate = new DateTime(2024, 1, 7);   // Sunday (7 days total)
-        var customer = new Customer 
+        var customer = new Customer
         {
-            Id = 12, GlobalFreeDays = 5, // 5 Free days
+            Id = 12,
+            GlobalFreeDays = 5, // 5 Free days
             Discounts = new List<Discount>(),
             ServiceUsages = new List<CustomerServiceUsage>
             {
@@ -216,4 +225,4 @@ public class PriceCalculatorTests
         // Assert
         Assert.Equal(expectedPrice, totalPrice, precision: 2);
     }
-} 
+}

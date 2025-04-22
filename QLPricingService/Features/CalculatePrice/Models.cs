@@ -18,4 +18,4 @@ public record CalculatePriceQuery(
 /// <param name="TotalPrice">The final calculated price for the specified customer and period.</param>
 public record CalculatePriceResponse(
     decimal TotalPrice
-); 
+);

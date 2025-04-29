@@ -70,10 +70,10 @@ app.MapGet("/pricing", async (
     return statusCode switch
     {
         HttpStatusCode.OK => Results.Ok(response),
-        HttpStatusCode.NotFound => Results.Problem(detail: errorMessage, statusCode: (int)statusCode),
-        HttpStatusCode.BadRequest => Results.Problem(detail: errorMessage, statusCode: (int)statusCode),
-        HttpStatusCode.InternalServerError => Results.Problem(detail: errorMessage, statusCode: (int)statusCode),
-        _ => Results.Problem(detail: "An unexpected error occurred.", statusCode: 500)
+        HttpStatusCode.NotFound => Results.Json(new { Message = errorMessage }, statusCode: (int)statusCode),
+        HttpStatusCode.BadRequest => Results.Json(new { Message = errorMessage }, statusCode: (int)statusCode),
+        HttpStatusCode.InternalServerError => Results.Json(new { Message = errorMessage }, statusCode: (int)statusCode),
+        _ => Results.Json(new { Message = "An unexpected error occurred." }, statusCode: 500)
     };
 })
 .WithName("CalculatePrice")
@@ -96,7 +96,7 @@ app.MapGet("/pricing/by-name", async (
 {
     if (string.IsNullOrWhiteSpace(customerName))
     {
-        return Results.Problem(detail: "Customer name cannot be empty.", statusCode: (int)HttpStatusCode.BadRequest);
+        return Results.Json(new { Message = "Customer name cannot be empty." }, statusCode: (int)HttpStatusCode.BadRequest);
     }
 
     // Find customer by name
@@ -106,7 +106,7 @@ app.MapGet("/pricing/by-name", async (
 
     if (customer == null)
     {
-        return Results.Problem(detail: $"Customer with name '{customerName}' not found.", statusCode: (int)HttpStatusCode.NotFound);
+        return Results.Json(new { Message = $"Customer with name '{customerName}' not found." }, statusCode: (int)HttpStatusCode.NotFound);
     }
 
     // Use the found customer ID to call the existing handler
@@ -117,10 +117,10 @@ app.MapGet("/pricing/by-name", async (
     return statusCode switch
     {
         HttpStatusCode.OK => Results.Ok(response),
-        HttpStatusCode.NotFound => Results.Problem(detail: errorMessage, statusCode: (int)statusCode),
-        HttpStatusCode.BadRequest => Results.Problem(detail: errorMessage, statusCode: (int)statusCode),
-        HttpStatusCode.InternalServerError => Results.Problem(detail: errorMessage, statusCode: (int)statusCode),
-        _ => Results.Problem(detail: "An unexpected error occurred.", statusCode: 500)
+        HttpStatusCode.NotFound => Results.Json(new { Message = errorMessage }, statusCode: (int)statusCode),
+        HttpStatusCode.BadRequest => Results.Json(new { Message = errorMessage }, statusCode: (int)statusCode),
+        HttpStatusCode.InternalServerError => Results.Json(new { Message = errorMessage }, statusCode: (int)statusCode),
+        _ => Results.Json(new { Message = "An unexpected error occurred." }, statusCode: 500)
     };
 })
 .WithName("CalculatePriceByName")
@@ -132,3 +132,6 @@ app.MapGet("/pricing/by-name", async (
 .Produces<ProblemDetails>(StatusCodes.Status500InternalServerError);
 
 app.Run();
+
+// Make the implicit Program class public so test projects can access it
+public partial class Program { }

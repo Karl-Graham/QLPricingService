@@ -8,6 +8,7 @@ using QLPricingService.Data; // Namespace for PricingDbContext
 using QLPricingService.Domain; // Namespace for domain entities
 using System.Data.Common; // For DbConnection
 using Microsoft.Extensions.Logging; // Add this using statement
+using System.Reflection;
 
 namespace QLPricingService.Tests;
 
@@ -38,8 +39,15 @@ public class TestingWebAppFactory<TEntryPoint> : WebApplicationFactory<TEntryPoi
                 options.UseSqlite(_connection);
             });
 
-            // Build the service provider to create a scope for seeding.
-            // REMOVED Seeding logic from here - will be done in CreateHost override
+            // Ensure database is dropped and recreated on each test run
+            var sp = services.BuildServiceProvider();
+            using (var scope = sp.CreateScope())
+            {
+                var scopedServices = scope.ServiceProvider;
+                var db = scopedServices.GetRequiredService<PricingDbContext>();
+                db.Database.EnsureDeleted();
+                db.Database.EnsureCreated();
+            }
         });
 
         builder.UseEnvironment("Development");
